@@ -1,0 +1,11 @@
+# סביבת Python
+__pycache__/
+*.pyc
+.env
+
+# Vector DB — לא עולה ל-GitHub (קובץ גדול)
+chroma_db/
+
+# קבצים זמניים
+*.pdf
+.DS_Store
