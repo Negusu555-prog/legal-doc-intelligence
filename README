@@ -1,0 +1,159 @@
+
+> Upload any legal PDF. Ask questions in plain language. Get answers with exact page citations — in seconds.
+
+
+
+
+
+## What it does
+
+Legal professionals spend hours manually searching through contracts, case files, and regulatory documents. This platform eliminates that.
+
+Upload a PDF, ask a question in plain language, and get a precise answer — with the exact page number it came from. The system refuses to guess: if the answer isn't in the document, it says so.
+
+**Who it's for:** Law firms, in-house legal teams, and compliance departments that need fast answers from large document sets without hallucination risk.
+
+
+
+## Architecture
+
+```
+PDF Upload
+    │
+    ▼
+document_processor.py     ← Extracts text, splits into chunks with page tracking
+    │
+    ▼
+vector_store.py           ← Embeds chunks → stores in ChromaDB (persistent local DB)
+    │
+    ▼
+rag_engine.py             ← Retrieves top-3 relevant chunks → sends to Llama 3.3 70B via Groq
+    │
+    ▼
+FastAPI (main.py)         ← REST API: /upload, /ask, /health
+    │
+    ▼
+Docker / docker-compose   ← Fully containerized, runs anywhere
+```
+
+**Why this stack:**
+- **Groq + Llama 3.3 70B** — fastest open-weight LLM available; no data sent to OpenAI
+- **ChromaDB** — local persistent vector store; no cloud dependency for embeddings
+- **FastAPI** — async support + automatic OpenAPI docs out of the box
+- **Docker** — reproducible environment; one command to run anywhere
+
+
+
+## Getting started
+
+### Prerequisites
+
+- Docker + Docker Compose
+- A free [Groq API key](https://console.groq.com/)
+
+### Installation
+
+```bash
+git clone https://github.com/Negusu555-prog/legal-doc-intelligence.git
+cd legal-doc-intelligence
+
+# Set your API key
+cp .env.example .env
+# Edit .env and add your GROQ_API_KEY
+
+# Run
+docker-compose up --build
+```
+
+API is now live at `http://localhost:8000`
+
+Auto-generated docs: `http://localhost:8000/docs`
+
+
+
+## Usage
+
+### 1. Upload a legal document
+
+```bash
+curl -X POST http://localhost:8000/upload \
+  -F "file=@contract.pdf"
+```
+
+**Response:**
+```json
+{
+  "message": "עובדו 47 חתיכות בהצלחה"
+}
+```
+
+### 2. Ask a question
+
+```bash
+curl -X POST "http://localhost:8000/ask?question=What+are+the+termination+conditions?"
+```
+
+**Response:**
+```json
+{
+  "answer": "The contract may be terminated by either party with 30 days written notice under Section 12.3. Immediate termination is permitted in cases of material breach, insolvency, or force majeure events lasting more than 60 days.",
+  "sources": ["עמוד 8", "עמוד 14"]
+}
+```
+
+### 3. Health check
+
+```bash
+curl http://localhost:8000/health
+# {"status": "ok"}
+```
+
+
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GROQ_API_KEY` | ✅ Yes | API key from [console.groq.com](https://console.groq.com/) |
+
+```bash
+# .env.example
+GROQ_API_KEY=your_key_here
+```
+
+
+
+## Project structure
+
+```
+legal-doc-intelligence/
+├── main.py                 # FastAPI app — /upload, /ask, /health endpoints
+├── document_processor.py   # PDF text extraction + chunking with page tracking
+├── rag_engine.py           # RAG pipeline: retrieval → Groq LLM → cited answer
+├── vector_store.py         # ChromaDB wrapper — embed, store, search
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+└── .env.example
+```
+
+
+
+## Tech stack
+
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| API | FastAPI | Async, auto-validation, OpenAPI docs |
+| LLM | Llama 3.3 70B via Groq | Open-weight, fast inference, no data lock-in |
+| Vector DB | ChromaDB | Local-first, persistent, no cloud required |
+| Embeddings | sentence-transformers | Free, runs locally, no API cost |
+| Container | Docker + Compose | Reproducible, deploy anywhere |
+
+
+## Roadmap
+
+- [ ] Multi-document Q&A (query across multiple uploaded files simultaneously)
+- [ ] Source highlighting — return exact text snippet, not just page number
+- [ ] Authentication layer — per-user document isolation
+- [ ] Streaming responses via SSE
+

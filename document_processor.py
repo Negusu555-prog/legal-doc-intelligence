@@ -1,4 +1,3 @@
-# document_processor.py
 import fitz  # PyMuPDF
 from typing import List, Dict
 import hashlib

@@ -1,4 +1,3 @@
-# vector_store.py
 import chromadb
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict

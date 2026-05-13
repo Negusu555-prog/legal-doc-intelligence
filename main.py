@@ -1,4 +1,3 @@
-# main.py
 from fastapi import FastAPI, UploadFile, File
 from document_processor import extract_text_from_pdf
 from rag_engine import RAGEngine

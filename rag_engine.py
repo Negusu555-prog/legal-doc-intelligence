@@ -1,4 +1,3 @@
-# rag_engine.py
 from groq import Groq
 from vector_store import VectorStore
 from typing import Dict
@@ -10,11 +9,11 @@ class RAGEngine:
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
     
     def answer(self, question: str) -> Dict:
-        # שלב 1 — שאיבה
+        # שלב 1  שאיבה
         relevant_chunks = self.vector_store.search(question, n_results=3)
         context = "\n\n".join([c["text"] for c in relevant_chunks])
         
-        # שלב 2 — יצירה
+        # שלב 2  יצירה
         response = self.client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             max_tokens=500,
